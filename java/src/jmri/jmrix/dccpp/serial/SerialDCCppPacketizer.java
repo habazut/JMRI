@@ -40,6 +40,8 @@ import jmri.util.ThreadingUtil;
  */
 public class SerialDCCppPacketizer extends DCCppPacketizer {
 
+    int funcDelay = 500  ; /* im ms */
+
     final DelayQueue<DCCppMessage> resendFunctions = new DelayQueue<>();
 
     boolean activeBackgroundRefresh = true;
@@ -80,22 +82,22 @@ public class SerialDCCppPacketizer extends DCCppPacketizer {
                     }
                 }
             } finally {
-                ThreadingUtil.runOnLayoutDelayed(this, 250);
+                ThreadingUtil.runOnLayoutDelayed(this, funcDelay);
             }
         }
     }
 
     private void enqueueFunction(final DCCppMessage m) {
         /**
-         * Set again the same group function value 250ms later (or more,
+         * Set again the same group function value funcDelay ms later (or more,
          * depending on the queue depth)
          */
-        m.delayFor(250);
+        m.delayFor(funcDelay);
         resendFunctions.offer(m);
 
         synchronized (this) {
             if (!backgroundRefreshStarted) {
-                ThreadingUtil.runOnLayoutDelayed(new RefreshAction(), 250);
+                ThreadingUtil.runOnLayoutDelayed(new RefreshAction(), funcDelay);
                 backgroundRefreshStarted = true;
             }
         }
