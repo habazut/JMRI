@@ -1698,13 +1698,52 @@ public class DCCppMessage extends jmri.jmrix.AbstractMRMessage implements Delaye
         return (makeAccessoryDecoderMsg(addr, subaddr, activate));
     }
 
+    public static DCCppMessage makeAccessoryDecoderMsg(int address, String state) {
+        // Convert the single address to an address/subaddress pair:
+        // address = (address - 1) * 4 + subaddress + 1 for address>0;
+        int addr, subaddr;
+        if (address > 0) {
+            addr = ((address - 1) / (DCCppConstants.MAX_ACC_DECODER_SUBADDR + 1)) + 1;
+            subaddr = (address - 1) % (DCCppConstants.MAX_ACC_DECODER_SUBADDR + 1);
+        } else {
+            addr = subaddr = 0;
+        }
+        log.debug("makeAccessoryDecoderMsg address {}, addr {}, subaddr {}, activate {}", address, addr, subaddr, state);
+        DCCppMessage m = new DCCppMessage(DCCppConstants.ACCESSORY_CMD);
+
+        m.myMessage.append(" ").append(address);
+        m.myMessage.append(" ").append(subaddr);
+        m.myMessage.append(" ").append(state);
+        m.myRegex = DCCppConstants.ACCESSORY_CMD_REGEX;
+
+        m._nDataChars = m.toString().length();
+        return (m);
+    }
+
     /**
      * Predefined Turnout Control Message.
      * <p>
      * @param id the numeric ID (0-32767) of the turnout to control.
-     * @param thrown true thrown, false closed.
+     * @param state
      * @return message to set turnout.
      */
+    public static DCCppMessage makeTurnoutCommandMsg(int id, String state) {
+        // Sanity check inputs
+        if (id < 0 || id > DCCppConstants.MAX_TURNOUT_ADDRESS) {
+            return (null);
+        }
+        // Need to also validate whether turnout is predefined?  Where to store the IDs?
+        // Turnout Command
+
+        DCCppMessage m = new DCCppMessage(DCCppConstants.TURNOUT_CMD);
+        m.myMessage.append(" ").append(id);
+        m.myMessage.append(state);
+        m.myRegex = DCCppConstants.TURNOUT_CMD_REGEX;
+
+        m._nDataChars = m.toString().length();
+        return (m);
+    }
+
     public static DCCppMessage makeTurnoutCommandMsg(int id, boolean thrown) {
         // Sanity check inputs
         if (id < 0 || id > DCCppConstants.MAX_TURNOUT_ADDRESS) {
@@ -1731,6 +1770,21 @@ public class DCCppMessage extends jmri.jmrix.AbstractMRMessage implements Delaye
         DCCppMessage m = new DCCppMessage(DCCppConstants.OUTPUT_CMD);
         m.myMessage.append(" ").append(id);
         m.myMessage.append(" ").append(state ? "1" : "0");
+        m.myRegex = DCCppConstants.OUTPUT_CMD_REGEX;
+
+        m._nDataChars = m.toString().length();
+        return (m);
+    }
+
+    public static DCCppMessage makeOutputCmdMsg(int id, String state) {
+        // Sanity check inputs
+        if (id < 0 || id > DCCppConstants.MAX_TURNOUT_ADDRESS) {
+            return (null);
+        }
+
+        DCCppMessage m = new DCCppMessage(DCCppConstants.OUTPUT_CMD);
+        m.myMessage.append(" ").append(id);
+        m.myMessage.append(" ").append(state);
         m.myRegex = DCCppConstants.OUTPUT_CMD_REGEX;
 
         m._nDataChars = m.toString().length();

@@ -175,34 +175,35 @@ public class DCCppTurnout extends AbstractTurnout implements DCCppListener {
             log.warn("Turnout {}: state {} not forwarded to layout.", mNumber, s);
             return;
         }
-        // newState = TRUE if s == THROWN ...
-        // ... unless we are inverted, then newState = TRUE if s == CLOSED
-        boolean newState = (s == THROWN);
+	if (s != THROWN && s != CLOSED) {
+	  log.error ("Turnout neither closed nor thrown, can not be operated");
+	  return;
+	}
+	String newState = "X"; // initialize to make javac shut up.
+	                       // That s is neither THROWN nor CLOSED has been taken care of.
         if (getInverted()) {
-            newState = !newState;
-        }
+	  // inverted case
+	  if (s == THROWN) newState = DCCppConstants.TURNOUT_CLOSED;
+	  if (s == CLOSED) newState = DCCppConstants.TURNOUT_THROWN;
+        } else {
+	  // normal case
+	  if (s == THROWN) newState = DCCppConstants.TURNOUT_THROWN;
+	  if (s == CLOSED) newState = DCCppConstants.TURNOUT_CLOSED;
+	}
         switch (_activeFeedbackType) {
-            case EXACT: // Use <z ... > command
-                // mNumber is the index ID into the Base Station's internal table of outputs.
-                // Convert the integer Turnout value to boolean for DCC++ internal code.
-                // Assume if it's not THROWN (true), it must be CLOSED (false).
+            case EXACT: // Use <Z ... > command
                 // Note for Outputs (EXACT mode), LOW is THROWN, HIGH is CLOSED
-                // As defined in DCC++ Base Station SerialCommand.cpp, so newstate
-                // is inverted when making the message
-                msg = DCCppMessage.makeOutputCmdMsg(mNumber, !newState);
+                // As defined in DCC++ Base Station SerialCommand.cpp
+                msg = DCCppMessage.makeOutputCmdMsg(mNumber, newState);
                 internalState = COMMANDSENT;
                 break;
             case MONITORING: // Use <T ... > command
                 // mNumber is the index ID into the Base Station's internal table of Turnouts.
-                // Convert the integer Turnout value to boolean for DCC++ internal code.
-                // Assume if it's not THROWN (true), it must be CLOSED (false).
                 msg = DCCppMessage.makeTurnoutCommandMsg(mNumber, newState);
                 internalState = COMMANDSENT;
                 break;
             default: // DIRECT -- use <a ... > command
                 // mNumber is the DCC address of the device.
-                // Convert the integer Turnout value to boolean for DCC++ internal code.
-                // Assume if it's not THROWN (true), it must be CLOSED (false).
                 msg = DCCppMessage.makeAccessoryDecoderMsg(mNumber, newState);
             internalState = IDLE;
                 break;

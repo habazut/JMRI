@@ -181,8 +181,8 @@ public final class DCCppConstants {
     public static final int FUNCTION_GROUP4_BYTE1 = 222;
     public static final int FUNCTION_GROUP5_BYTE1 = 223;
 
-    public static final String TURNOUT_THROWN      = "1";
-    public static final String TURNOUT_CLOSED      = "0";
+    public static final String TURNOUT_CLOSED      = "1";
+    public static final String TURNOUT_THROWN      = "0";
     public static final String THROTTLE_FORWARD    = "1";
     public static final String THROTTLE_REVERSE    = "0";
     public static final String ACCESSORY_ON        = "1";
